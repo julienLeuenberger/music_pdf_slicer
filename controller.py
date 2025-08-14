@@ -6,6 +6,7 @@ class AppController:
     def __init__(self, root):
         self.model = VoiceConfigModel()
         self.view = AppView(root, self)
+        self.model.attach(self.view)
     
     def add_voice(self, name, pages_str):
         self.model.add_voice(name, pages_str)
@@ -25,8 +26,12 @@ class AppController:
     def add_pdf_in(self, path):
         self.model.add_path_pdf(filepath=path)
 
-    def add_folder_output(self, folder_output):
-        self.model.add_folder_output(folder_output)
+    def add_output_folder(self, folder_output):
+        self.model.add_output_folder(folder_output)
 
     def run_cut(self):
         self.model.run_cut()
+
+    def clear_states(self):
+        self.model.clear_state_pdf_in()
+        self.model.clear_state_output_folder()

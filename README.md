@@ -45,6 +45,7 @@ To avoid any problem with pyinstaller and everything, just deliver:
 
 ## To Do
 - Enhance every paths
+- Secure the entry
 - Document the method
 - Test a lot
 - Improve the GUI

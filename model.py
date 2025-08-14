@@ -2,12 +2,29 @@ import os
 import json
 from PyPDF2 import PdfReader
 from PyPDF2 import PdfWriter
+from utils import Observer, Subject
+from typing import List
 
-class VoiceConfigModel:
+class VoiceConfigModel(Subject):
     def __init__(self):
         self.voices = []
         self.path_pdf_in = ""
         self.path_folder_output = ""
+
+        self._state_pdf_in_set = False
+        self._state_output_folder_set = False
+
+        self._observers: List[Observer] = []
+
+    def attach(self, observer:Observer)->None:
+        self._observers.append(observer)
+
+    def detach(self, observer:Observer)->None:
+        self._observers.remove(observer)
+
+    def notify(self)->None:
+        for observer in self._observers:
+            observer.update(self)
 
     def add_voice(self, name, pages_str):
         pages = self.parse_pages(pages_str)
@@ -52,10 +69,24 @@ class VoiceConfigModel:
             self.add_voice(item["name"], pages_str)
 
     def add_path_pdf(self, filepath):
-        self.path_pdf_in = filepath  
+        self.path_pdf_in = filepath
+        self._state_pdf_in_set = True
+        self.notify()
 
-    def add_folder_output(self, path_folder_output):
+    def clear_state_pdf_in(self):
+        self.path_pdf_in = ""
+        self._state_pdf_in_set = False
+        self.notify()
+
+    def add_output_folder(self, path_folder_output):
         self.path_folder_output = path_folder_output
+        self._state_output_folder_set = True
+        self.notify()
+
+    def clear_state_output_folder(self):
+        self.path_folder_output = ""
+        self._state_output_folder_set = False
+        self.notify()
 
     def run_cut(self):
         # first create a json
@@ -79,11 +110,12 @@ class VoiceConfigModel:
 
         json_file = file_temp_json
 
+        """
         print(f"path = {path}")
         print(f"path_to_save = {path_to_save}")
         print(f"name_sheet = {name_sheet}")
         print(f"json_file = {json_file}")
-
+        """
         
         # Create the folder if it does not exist
         if not os.path.exists(path_to_save):

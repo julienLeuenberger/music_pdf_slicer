@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
+from utils import Observer, Subject
 
-class AppView:
+class AppView(Observer):
     def __init__(self, root, controller):
         self.root = root
         self.controller = controller
@@ -23,28 +24,40 @@ class AppView:
         self.frame = tk.Frame(self.root)
         self.frame.pack(padx=10, pady=10)
 
-        self.add_row()
+        self.add_row(name="Instrument", pages="1")
+        row = 999
+        self.btn_add = tk.Button(self.frame, text="➕ Ajouter voix", command=self.add_row)
+        self.btn_add.grid(row=row, column=0, columnspan=2)
+        row+=1
 
-        btn_add = tk.Button(self.frame, text="➕ Ajouter voix", command=self.add_row)
-        btn_add.grid(row=999, column=0, columnspan=2)
+        self.btn_clear = tk.Button(self.frame, text="Nettoyer tout", command=self.clear)
+        self.btn_clear.grid(row=row, column=0, columnspan=2)
+        row+=1
 
-        btn_clear = tk.Button(self.frame, text="Nettoyer tout", command=self.clear_entries)
-        btn_clear.grid(row=1000, column=0, columnspan=2)
+        self.btn_clear_last_row = tk.Button(self.frame, text="Nettoyer dernière ligne", command=self.clear_last_row)
+        self.btn_clear_last_row.grid(row=1001, column=0, columnspan=2)
+        row+=1
 
-        btn_export = tk.Button(self.frame, text="💾 Exporter JSON", command=self.export)
-        btn_export.grid(row=1001, column=0, columnspan=2)
+        self.btn_export = tk.Button(self.frame, text="💾 Exporter JSON", command=self.export)
+        self.btn_export.grid(row=row, column=0, columnspan=2)
+        row+=1
 
-        btn_load = tk.Button(self.frame, text="Importer JSON", command=self.load_from_json)
-        btn_load.grid(row=1002, column=0, columnspan=2)
+        self.btn_load = tk.Button(self.frame, text="Importer JSON", command=self.load_from_json)
+        self.btn_load.grid(row=row, column=0, columnspan=2)
+        row+=1
 
-        btn_add_pdf_in = tk.Button(self.frame, text= "Ajouter PDF IN", command=self.add_pdf_in)
-        btn_add_pdf_in.grid(row=1003, column=0, columnspan=2)
+        self.btn_add_pdf_in = tk.Button(self.frame, text= "Ajouter PDF IN", command=self.add_pdf_in)
+        self.btn_add_pdf_in.grid(row=row, column=0, columnspan=2)
+        row+=1
 
-        btn_add_folder_out = tk.Button(self.frame, text= "Ajouter Dossier OUT", command=self.add_folder_out)
-        btn_add_folder_out.grid(row=1004, column=0, columnspan=2)
+        self.btn_add_folder_out = tk.Button(self.frame, text= "Ajouter Dossier OUT", command=self.add_folder_out)
+        self.btn_add_folder_out.grid(row=row, column=0, columnspan=2)
+        row+=1
 
-        btn_run_cut = tk.Button(self.frame, text= "Découper PDF", command=self.run_cut)
-        btn_run_cut.grid(row=1005, column=0, columnspan=2)
+        self.btn_run_cut = tk.Button(self.frame, text= "Découper PDF", command=self.run_cut)
+        self.btn_run_cut.grid(row=row, column=0, columnspan=2)
+        self.btn_run_cut['state'] = "disabled"
+        row+=1
 
     def add_row(self, name="", pages=""):
         row = len(self.entries)
@@ -98,7 +111,21 @@ class AppView:
         path = filedialog.askdirectory()
         if path[-1] != "/":
             path = path + "/"
-        self.controller.add_folder_output(path)
+        self.controller.add_output_folder(path)
+
+    def clear(self):
+        self.clear_entries()
+        self.controller.clear_states()
+        self.btn_run_cut['state'] = "disabled"
+        self.add_row(name="Instrument", pages="1")
+
+    def clear_last_row(self):
+        if not self.entries:
+            print("No rows to remove")
+        name_entry, pages_entry = self.entries.pop()
+
+        name_entry.destroy()
+        pages_entry.destroy()
 
     def clear_entries(self):
         for name_entry, pages_entry in self.entries:
@@ -132,7 +159,7 @@ class AppView:
 
         # If the model is empty, create at least one empty row
         if not voices:
-            self.add_row("", "")
+            self.add_row(name="Instrument", pages="1")
 
     def run_cut(self):
         self.add_voices_to_model()        
@@ -146,3 +173,15 @@ class AppView:
             "Utilisez Tab pour ajouter rapidement des lignes.\n"
             "Exportez au format JSON compatible avec le script de découpe."
         )
+
+    def update(self, subject: Subject) -> None:
+        if subject._state_pdf_in_set == True:
+            self.btn_add_pdf_in["state"] = "disabled"
+        else:
+            self.btn_add_pdf_in["state"] = "normal"
+        if subject._state_output_folder_set == True:
+            self.btn_add_folder_out["state"] = "disabled"
+        else:
+            self.btn_add_folder_out["state"] = "normal"
+        if subject._state_pdf_in_set == True and subject._state_output_folder_set == True:
+            self.btn_run_cut['state'] = "normal"
