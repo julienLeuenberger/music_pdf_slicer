@@ -21,7 +21,7 @@
 ## Model-View-Controller
 ```bash
 partition_splitter_gui/
-├── main.py                   # Entry point
+├── main.py                  # Entry point
 ├── controller.py            # Control Logic: link view and model
 ├── model.py                 # Data structure
 ├── view/
@@ -33,3 +33,19 @@ partition_splitter_gui/
 └── data/
     └── *.json  # datas
 ```
+
+## Example files
+To avoid any problem with pyinstaller and everything, just deliver:
+- main.exe
+- data/jsons/diane.json
+- data/pdf_in/Diane.pdf
+- data/outputs/outputs_here.txt
+- manual.pdf to do
+
+
+## To Do
+- Enhance every paths
+- Document the method
+- Test a lot
+- Improve the GUI
+- Make a manual.pdf (latex of course)
