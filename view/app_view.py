@@ -35,7 +35,7 @@ class AppView(Observer):
         row+=1
 
         self.btn_clear_last_row = tk.Button(self.frame, text="Nettoyer dernière ligne", command=self.clear_last_row)
-        self.btn_clear_last_row.grid(row=1001, column=0, columnspan=2)
+        self.btn_clear_last_row.grid(row=row, column=0, columnspan=2)
         row+=1
 
         self.btn_export = tk.Button(self.frame, text="💾 Exporter JSON", command=self.export)
