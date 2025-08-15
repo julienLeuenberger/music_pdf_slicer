@@ -26,6 +26,9 @@ class AppController:
     def add_pdf_in(self, path):
         self.model.add_path_pdf(filepath=path)
 
+    def get_path_pdf(self):
+        return self.model.get_path_pdf()
+
     def add_output_folder(self, folder_output):
         self.model.add_output_folder(folder_output)
 

@@ -73,6 +73,12 @@ class VoiceConfigModel(Subject):
         self._state_pdf_in_set = True
         self.notify()
 
+    def get_path_pdf(self):
+        if self._state_pdf_in_set:
+            return self.path_pdf_in
+        else:
+            raise ValueError("No pdf path set!")
+
     def clear_state_pdf_in(self):
         self.path_pdf_in = ""
         self._state_pdf_in_set = False

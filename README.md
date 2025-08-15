@@ -44,9 +44,25 @@ To avoid any problem with pyinstaller and everything, just deliver:
 
 
 ## To Do
+
+### GUI
+- Improves the button alingment
+- Say something when the cut is done, like a status message box
+### Functionnalities
+- PyPDF extract text?
+### Code
 - Enhance every paths
 - Secure the entry
+- GUI strategy on Python book
+- Get logs everywhere
+### Documentation
+- Add a linter
 - Document the method
+- Make a manual.pdf (latex of course), one .tex for all languages
+### Test
 - Test a lot
-- Improve the GUI
-- Make a manual.pdf (latex of course)
+- Test procedure for new features
+### Branding
+- Add logo
+- Buy me a coffee or buy me a reed
+- Email address with domain

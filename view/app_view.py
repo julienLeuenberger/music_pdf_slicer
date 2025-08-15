@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from utils import Observer, Subject
+from .pdf_viewer import SimplePDFViewer
 
 class AppView(Observer):
     def __init__(self, root, controller):
@@ -21,49 +22,54 @@ class AppView(Observer):
 
         self.root.config(menu=menubar)
 
-        self.frame = tk.Frame(self.root)
-        self.frame.pack(padx=10, pady=10)
+        self.main_frame = tk.Frame(self.root)
+        self.main_frame.grid(row=0, column=0, sticky="nsew")
+
+        self.work_frame = tk.Frame(self.main_frame)
+        self.work_frame.grid(row=0, column=0, sticky="nsew")
+
+        self.control_frame = tk.Frame(self.main_frame)
+        self.control_frame.grid(row=1, column=0, sticky="nsew")
+
+        self.entry_frame = tk.Frame(self.work_frame)
+        self.entry_frame.grid(row=0, column=0, sticky="nsew")
+
+        self.preview_frame = tk.Frame(self.work_frame)
+        self.preview_frame.grid(row=0, column=1, sticky="nsew")
+
 
         self.add_row(name="Instrument", pages="1")
-        row = 999
-        self.btn_add = tk.Button(self.frame, text="➕ Ajouter voix", command=self.add_row)
-        self.btn_add.grid(row=row, column=0, columnspan=2)
-        row+=1
 
-        self.btn_clear = tk.Button(self.frame, text="Nettoyer tout", command=self.clear)
-        self.btn_clear.grid(row=row, column=0, columnspan=2)
-        row+=1
+        self.btn_add = tk.Button(self.control_frame, text="➕ Ajouter voix", command=self.add_row)
+        self.btn_add.grid(row=0, column=0)
 
-        self.btn_clear_last_row = tk.Button(self.frame, text="Nettoyer dernière ligne", command=self.clear_last_row)
-        self.btn_clear_last_row.grid(row=row, column=0, columnspan=2)
-        row+=1
+        self.btn_clear = tk.Button(self.control_frame, text="Nettoyer tout", command=self.clear)
+        self.btn_clear.grid(row=0, column=1)
 
-        self.btn_export = tk.Button(self.frame, text="💾 Exporter JSON", command=self.export)
-        self.btn_export.grid(row=row, column=0, columnspan=2)
-        row+=1
+        self.btn_clear_last_row = tk.Button(self.control_frame, text="Nettoyer dernière ligne", command=self.clear_last_row)
+        self.btn_clear_last_row.grid(row=0, column=2)
 
-        self.btn_load = tk.Button(self.frame, text="Importer JSON", command=self.load_from_json)
-        self.btn_load.grid(row=row, column=0, columnspan=2)
-        row+=1
+        self.btn_export = tk.Button(self.control_frame, text="💾 Exporter JSON", command=self.export)
+        self.btn_export.grid(row=1, column=0)
 
-        self.btn_add_pdf_in = tk.Button(self.frame, text= "Ajouter PDF IN", command=self.add_pdf_in)
-        self.btn_add_pdf_in.grid(row=row, column=0, columnspan=2)
-        row+=1
+        self.btn_load = tk.Button(self.control_frame, text="Importer JSON", command=self.load_from_json)
+        self.btn_load.grid(row=1, column=1)
 
-        self.btn_add_folder_out = tk.Button(self.frame, text= "Ajouter Dossier OUT", command=self.add_folder_out)
-        self.btn_add_folder_out.grid(row=row, column=0, columnspan=2)
-        row+=1
+        self.btn_add_pdf_in = tk.Button(self.control_frame, text= "Ajouter PDF IN", command=self.add_pdf_in)
+        self.btn_add_pdf_in.grid(row=1, column=2)
 
-        self.btn_run_cut = tk.Button(self.frame, text= "Découper PDF", command=self.run_cut)
-        self.btn_run_cut.grid(row=row, column=0, columnspan=2)
+        self.btn_add_folder_out = tk.Button(self.control_frame, text= "Ajouter Dossier OUT", command=self.add_folder_out)
+        self.btn_add_folder_out.grid(row=3, column=0)
+
+        self.btn_run_cut = tk.Button(self.control_frame, text= "Découper PDF", command=self.run_cut)
         self.btn_run_cut['state'] = "disabled"
-        row+=1
+        self.btn_run_cut.grid(row=3, column=1)
 
     def add_row(self, name="", pages=""):
         row = len(self.entries)
-        name_entry = tk.Entry(self.frame, width=30)
+        name_entry = tk.Entry(self.entry_frame, width=30)
         name_entry.insert(0, name)  # Fill with given name if provided
-        pages_entry = tk.Entry(self.frame, width=30)
+        pages_entry = tk.Entry(self.entry_frame, width=30)
         pages_entry.insert(0, pages)  # Fill with given pages if provided
 
         name_entry.grid(row=row, column=0, padx=5, pady=2)
@@ -78,12 +84,16 @@ class AppView(Observer):
     def on_tab_pressed(self, event):
         widget = event.widget
         last_name, last_pages = self.entries[-1]
+
+        if self.btn_add_pdf_in["state"] == "disabled":
+            self.pdf_viewer.next_page()
         
         # If we press tab
         if widget == last_pages:
             self.add_row()
             self.entries[-1][0].focus_set()
             return "break"  # Avoid double jump
+    
 
     def export(self):
         self.add_voices_to_model()
@@ -116,8 +126,20 @@ class AppView(Observer):
     def clear(self):
         self.clear_entries()
         self.controller.clear_states()
+        self.refresh_preview()
         self.btn_run_cut['state'] = "disabled"
         self.add_row(name="Instrument", pages="1")
+
+    def refresh_preview(self):
+        # Clear existing content
+        self.preview_frame.destroy()
+        
+        # Recreate frame
+        self.preview_frame = tk.Frame(self.work_frame, bg='white')
+        self.preview_frame.grid(row=0, column=1, sticky="nsew")
+        
+        # Add new content
+        #self.setup_preview_content()
 
     def clear_last_row(self):
         if not self.entries:
@@ -175,8 +197,10 @@ class AppView(Observer):
         )
 
     def update(self, subject: Subject) -> None:
-        if subject._state_pdf_in_set == True:
+        if subject._state_pdf_in_set == True and self.btn_add_pdf_in["state"] != "disabled":
             self.btn_add_pdf_in["state"] = "disabled"
+            self.pdf_viewer = SimplePDFViewer(self.preview_frame, self.controller.get_path_pdf())
+            self.pdf_viewer.pack(fill=tk.Y)
         else:
             self.btn_add_pdf_in["state"] = "normal"
         if subject._state_output_folder_set == True:
